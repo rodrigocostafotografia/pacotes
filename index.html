@@ -5280,4 +5280,30 @@ function baixarPDF() {
   observer.observe(document.body, { childList: true, subtree: true });
 
 })();
+(function(){
+  // ===== RESTRIÇÃO DE DOMÍNIO =====
+  // Altere esta lista com os domínios permitidos
+  const DOMINIOS_AUTORIZADOS = [
+    'https://github.com/',
+    'https://rodrigocostafotografia.github.io/pacotes/',
+    'localhost',
+    '127.0.0.1'
+  ];
+
+  const host = window.location.hostname;
+  const permitido = DOMINIOS_AUTORIZADOS.some(d => host === d || host.endsWith('.' + d));
+
+  if (!permitido) {
+    document.body.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui,sans-serif;text-align:center;padding:20px;background:#0e1013;color:#f0f2f5;">
+        <h1 style="color:#22c9b5;">⛔ Acesso restrito Rodrigo Costa</h1>
+        <p style="max-width:500px;color:#a8b0bd;">Cópia proíbida conformidade legal LEI 9.609/98.</p>
+        <p style="font-size:14px;color:#6e7887;margin-top:20px;">A Lei 9.609/98 regula a proteção de programas de computador no Brasil. Sujeito à penalidades legais.</p>
+      </div>
+    `;
+    // Impede a execução do restante do JavaScript
+    throw new Error('Domínio não autorizado: ' + host);
+  }
+  // =====================================
+})();
 </script>
