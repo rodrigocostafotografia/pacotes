@@ -5280,4 +5280,27 @@ function baixarPDF() {
   observer.observe(document.body, { childList: true, subtree: true });
 
 })();
+(function(){
+  // ===== RESTRIÇÃO DE DOMÍNIO (com URL completa) =====
+  const URLS_AUTORIZADAS = [
+    'https://rodrigocostafotografia.github.io/pacotes/',
+    'http://localhost:5500/',   // se usar Live Server
+    'http://127.0.0.1:5500/'
+  ];
+
+  const currentUrl = window.location.href;
+  const permitido = URLS_AUTORIZADAS.some(url => currentUrl.startsWith(url));
+
+  if (!permitido) {
+    document.body.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui,sans-serif;text-align:center;padding:20px;background:#0e1013;color:#f0f2f5;">
+        <h1 style="color:#22c9b5;">⛔ Acesso restrito</h1>
+        <p style="max-width:500px;color:#a8b0bd;">Cópia proibida — conformidade legal Lei 9.609/98.</p>
+        <p style="font-size:14px;color:#6e7887;margin-top:20px;">Sujeito a penalidades legais.</p>
+      </div>
+    `;
+    throw new Error('URL não autorizada: ' + currentUrl);
+  }
+  // =====================================
+})();
 </script>
