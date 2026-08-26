@@ -212,86 +212,6 @@
 }
 
 
-
-/* ===== GALERIA / MOLDURAS — CORREÇÃO MOBILE ===== */
-@media (max-width:620px){
-  .intro-photo-modal{
-    padding:0;
-    align-items:flex-end;
-    overflow:hidden;
-  }
-
-  .intro-photo-box{
-    width:100%;
-    max-width:100%;
-    max-height:calc(100dvh - 8px);
-    height:auto;
-    padding:12px;
-    border-radius:20px 20px 0 0;
-    overflow-x:hidden;
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-    overscroll-behavior:contain;
-    box-sizing:border-box;
-  }
-
-  .intro-photo-top{
-    min-width:0;
-    padding:4px 0 12px;
-    gap:10px;
-  }
-
-  .intro-photo-grid{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:8px;
-    width:100%;
-    min-width:0;
-    max-width:100%;
-    overflow-x:hidden;
-    overflow-y:visible;
-    column-count:initial;
-    column-gap:0;
-    column-fill:initial;
-    align-items:start;
-  }
-
-  .intro-photo-item{
-    display:flex;
-    width:100%;
-    min-width:0;
-    max-width:100%;
-    margin:0;
-    break-inside:auto;
-    overflow:hidden;
-    border-radius:12px;
-    align-items:flex-start;
-    justify-content:center;
-  }
-
-  .intro-photo-item img{
-    display:block;
-    width:100%;
-    max-width:100%;
-    height:auto;
-    max-height:300px;
-    object-fit:contain;
-    object-position:center;
-  }
-
-  .intro-photo-caption{
-    left:7px;
-    right:7px;
-    bottom:7px;
-    padding:6px 7px;
-    font-size:8px;
-  }
-
-  .intro-photo-bottom{
-    min-width:0;
-    padding:12px 0 2px;
-  }
-}
 @media (min-width:621px) and (max-width:900px){
   .category-rail .rail-inner{
     flex-wrap:wrap;
@@ -313,6 +233,102 @@
 
 /* Filtro de categoria: somente a categoria ativa permanece visível. */
 .category-section[hidden]{display:none!important}
+
+
+/* ===== GALERIA MOBILE — GRID ESTÁVEL E RESPONSIVO ===== */
+@media (max-width: 620px){
+  .intro-photo-modal{
+    align-items:flex-end;
+    justify-content:center;
+    padding:0;
+    overflow:hidden;
+  }
+
+  .intro-photo-box{
+    width:100%;
+    max-width:100%;
+    height:auto;
+    max-height:calc(100dvh - 8px);
+    padding:12px 12px calc(12px + var(--safe-bottom));
+    overflow-x:hidden;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    border-radius:20px 20px 0 0;
+  }
+
+  .intro-photo-top{
+    gap:10px;
+    padding:2px 0 12px;
+  }
+
+  .intro-photo-title{
+    font-size:clamp(24px,7vw,30px);
+    line-height:1.06;
+    max-width:none;
+  }
+
+  .intro-photo-sub{
+    font-size:11px;
+    line-height:1.5;
+    margin-top:7px;
+  }
+
+  /* Substitui o masonry/column-count por grid real de 2 colunas. */
+  .intro-photo-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    width:100%;
+    min-width:0;
+    align-items:start;
+    overflow:visible;
+  }
+
+  .intro-photo-item{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    width:100%;
+    min-width:0;
+    margin:0;
+    break-inside:auto;
+    overflow:hidden;
+    border-radius:11px;
+  }
+
+  .intro-photo-item img{
+    display:block;
+    width:100%;
+    max-width:100%;
+    height:auto;
+    max-height:300px;
+    object-fit:contain;
+    object-position:center;
+  }
+
+  .intro-photo-caption{
+    left:7px;
+    right:7px;
+    bottom:7px;
+    padding:6px 7px;
+    border-radius:8px;
+    font-size:8px;
+  }
+
+  .intro-photo-bottom{
+    align-items:stretch;
+    flex-direction:column;
+    gap:9px;
+    padding-top:12px;
+  }
+
+  .intro-photo-cta{
+    width:100%;
+    min-height:44px;
+  }
+}
 </style>
 </head>
 <body>
