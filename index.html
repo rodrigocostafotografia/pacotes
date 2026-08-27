@@ -373,6 +373,13 @@ body.has-site-background::before{z-index:0;background:linear-gradient(180deg,rgb
 .album-photo-lightbox.active{display:flex}
 .album-photo-lightbox img{max-width:min(94vw,1500px);max-height:88vh;object-fit:contain;border-radius:10px;box-shadow:0 30px 100px rgba(0,0,0,.65)}
 .album-photo-lightbox-close{position:absolute;top:18px;right:18px;width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(20,22,28,.8);color:#fff;cursor:pointer;font-size:18px}
+/* Visualizador exclusivo das fotos dos Temas. Isolado do visualizador de álbuns. */
+.theme-photo-lightbox{position:fixed;inset:0;z-index:7100;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.theme-photo-lightbox.active{display:flex}
+.theme-photo-lightbox img{max-width:min(94vw,1500px);max-height:88vh;width:auto;height:auto;object-fit:contain;border-radius:10px;box-shadow:0 30px 100px rgba(0,0,0,.65)}
+.theme-photo-lightbox-close{position:absolute;top:18px;right:18px;width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(20,22,28,.82);color:#fff;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+.theme-photo-lightbox-close:hover{transform:translateY(-1px);border-color:rgba(213,175,97,.48);background:rgba(213,175,97,.12)}
+.session-photo-card{cursor:pointer;font:inherit;color:inherit;text-align:left;width:100%;padding:0}
 @media(max-width:980px){.album-viewer-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:680px){
   .album-viewer-modal{padding:8px}
@@ -491,6 +498,10 @@ body.has-site-background::before{z-index:0;background:linear-gradient(180deg,rgb
 <div class="album-photo-lightbox" id="albumPhotoLightbox" onclick="albumPhotoLightboxOutside(event)">
   <button type="button" class="album-photo-lightbox-close" onclick="closeAlbumPhoto()" aria-label="Fechar foto"><i class="fa-solid fa-xmark"></i></button>
   <img id="albumPhotoLightboxImg" src="" alt="">
+</div>
+<div class="theme-photo-lightbox" id="themePhotoLightbox" onclick="themePhotoLightboxOutside(event)" aria-hidden="true">
+  <button type="button" class="theme-photo-lightbox-close" onclick="closeThemePhoto()" aria-label="Fechar foto"><i class="fa-solid fa-xmark"></i></button>
+  <img id="themePhotoLightboxImg" src="" alt="">
 </div>
 <div class="modal" id="productModal" onclick="modalOutside(event)"><div class="modal-box"><div class="modal-top"><div class="modal-label">Detalhes do pacote</div><button class="modal-close" onclick="closeProduct()"><i class="fa-solid fa-xmark"></i></button></div><div class="modal-media" id="modalMedia"></div><div class="modal-content"><div class="modal-category" id="modalCat"></div><div class="modal-title" id="modalName"></div><div class="modal-price" id="modalPrice"></div><div class="modal-desc" id="modalDesc"></div><div class="modal-columns"><div class="detail-box"><h4>O que está incluso</h4><ul id="modalIncludes" class="detail-list"></ul></div><div class="detail-box"><h4>Adicionais</h4><div id="modalExtras" class="extras"></div></div></div><div class="video" id="modalVideoBox" style="display:none"><div class="video-title">Vídeo do pacote</div><div id="modalVideo"></div></div><div class="modal-cta"><a id="modalWA" class="wa-btn" href="#" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Quero fechar este pacote</a><button class="pdf-btn" onclick="printProposal()"><i class="fa-solid fa-file-lines"></i> Ver proposta</button></div></div></div></div>
 <div class="modal" id="compareModal" onclick="compareOutside(event)"><div class="modal-box"><div class="modal-top"><div class="modal-label">Comparação direta</div><button class="modal-close" onclick="closeCompare()"><i class="fa-solid fa-xmark"></i></button></div><div class="compare-modal-body"><div id="compareGrid" class="compare-grid"></div></div></div></div>
@@ -696,9 +707,13 @@ function renderSessionGallery(){
       :item.session==='ultimos_eventos'?'Últimos Eventos':'Ensaios';
     const photoTitle=item.titulo||displayLandpagePhotoName(parsed.photo||item.slot_key||tag);
     const photoAlt=item.descricao_alt||tag;
+    const isThemeSession=item.session==='temas_infantis_menino'||item.session==='temas_infantis_menina';
     const card='<div class="session-photo-media"><img src="'+esc(item.url)+'" alt="'+esc(photoAlt)+'" loading="lazy"></div>'+
       '<div class="session-photo-body"><div class="session-photo-title">'+esc(photoTitle)+'</div>'+
       '<div class="session-photo-alt">'+esc(photoAlt)+'</div></div>';
+    if(isThemeSession){
+      return '<button type="button" class="session-photo-card" data-photo-url="'+esc(item.url)+'" data-photo-title="'+esc(photoTitle)+'" onclick="openThemePhoto(this.dataset.photoUrl,this.dataset.photoTitle)" aria-label="Visualizar '+esc(photoTitle)+'">'+card+'</button>';
+    }
     return href
       ? '<a class="session-photo-card" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">'+card+'</a>'
       : '<div class="session-photo-card">'+card+'</div>';
@@ -743,7 +758,7 @@ function updateSessionGalleryHeader(){
           : sessionGalleryCurrent==='adulto'
             ? 'Veja as imagens da categoria Adulto (Profissional).'
             : isAlbumGallerySession(sessionGalleryCurrent)
-              ? 'Fotos disponibilizadas para visualização em tamanho reduzido.'
+              ? 'Escolha um álbum para visualizar as fotos.'
               : 'Veja as imagens publicadas para esta sessão.';
 
   const tools=document.getElementById('sessionGalleryAlbumTools');
@@ -812,6 +827,23 @@ function closeAlbumPhoto(){
 }
 function albumPhotoLightboxOutside(e){if(e.target.id==='albumPhotoLightbox')closeAlbumPhoto()}
 
+function openThemePhoto(url,title){
+  const lb=document.getElementById('themePhotoLightbox');
+  const img=document.getElementById('themePhotoLightboxImg');
+  if(!lb||!img)return;
+  img.src=url||'';
+  img.alt=title||'Foto do tema';
+  lb.classList.add('active');
+  lb.setAttribute('aria-hidden','false');
+}
+function closeThemePhoto(){
+  const lb=document.getElementById('themePhotoLightbox');
+  const img=document.getElementById('themePhotoLightboxImg');
+  if(lb){lb.classList.remove('active');lb.setAttribute('aria-hidden','true');}
+  if(img)img.src='';
+}
+function themePhotoLightboxOutside(e){if(e.target.id==='themePhotoLightbox')closeThemePhoto()}
+
 function backToSessionAlbums(){
   closeAlbumViewer();
   sessionGalleryAlbum='';
@@ -867,6 +899,9 @@ window.albumViewerOutside=albumViewerOutside;
 window.openAlbumPhoto=openAlbumPhoto;
 window.closeAlbumPhoto=closeAlbumPhoto;
 window.albumPhotoLightboxOutside=albumPhotoLightboxOutside;
+window.openThemePhoto=openThemePhoto;
+window.closeThemePhoto=closeThemePhoto;
+window.themePhotoLightboxOutside=themePhotoLightboxOutside;
 window.backToSessionAlbums=backToSessionAlbums;
 
 async function loadSiteImages(){
@@ -906,7 +941,7 @@ function initials(n){let a=String(n||'?').trim().split(/\s+/);return ((a[0]||'?'
 async function loadTrust(){let ds=await db.from('clientes').select('nome,foto_perfil,categoria_cliente,depoimentos').not('depoimentos','is',null).order('id',{ascending:false}).limit(6),as=await db.from('clientes').select('nome,foto_perfil,categoria_cliente,virtua_album').not('virtua_album','is',null).order('id',{ascending:false}).limit(6),items=[];(ds.data||[]).filter(x=>x.depoimentos).slice(0,4).forEach(x=>items.push({type:'d',...x}));(as.data||[]).filter(x=>x.virtua_album).slice(0,4).forEach(x=>items.push({type:'a',...x}));document.getElementById('trustStatus').textContent=items.length+' experiências';let list=document.getElementById('trustList');if(!items.length){list.innerHTML='<div class="empty">Ainda não há experiências públicas cadastradas.</div>';return}list.innerHTML=items.slice(0,6).map(x=>'<article class="testimonial"><div class="who">'+(x.foto_perfil?'<img class="avatar" src="'+esc(x.foto_perfil)+'" alt="'+esc(x.nome)+'">':'<div class="avatar">'+esc(initials(x.nome))+'</div>')+'<div><b>'+esc(x.nome||'Cliente')+'</b><span>'+esc(x.categoria_cliente||'Cliente')+'</span></div></div>'+(x.type==='d'?'<div class="quote">“'+esc(x.depoimentos)+'”</div>':'<a class="album-link" href="'+esc(x.virtua_album)+'" target="_blank" rel="noopener">Ver fotolivro entregue <i class="fa-solid fa-arrow-up-right-from-square"></i></a>')+'</article>').join('')}
 function fmtCPF(v){v=String(v||'').replace(/\D/g,'');return v.length<=11?v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4'):v}function fmtWhats(v){v=String(v||'').replace(/\D/g,'').slice(0,11);if(v.length>6)return'('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);if(v.length>2)return'('+v.slice(0,2)+') '+v.slice(2);return v}function validCPF(c){c=String(c||'').replace(/\D/g,'');if(c.length!==11||/^(\d)\1{10}$/.test(c))return false;let s=0;for(let i=0;i<9;i++)s+=+c[i]*(10-i);let r=(s*10)%11;if(r===10)r=0;if(r!==+c[9])return false;s=0;for(let i=0;i<10;i++)s+=+c[i]*(11-i);r=(s*10)%11;if(r===10)r=0;return r===+c[10]}
 window.openLeadRegister=()=>{document.getElementById('leadModal').classList.add('active');document.body.style.overflow='hidden';document.getElementById('leadFormView').style.display='block';document.getElementById('leadSuccess').style.display='none';document.getElementById('leadMsg').style.display='none'};window.closeLeadRegister=()=>{document.getElementById('leadModal').classList.remove('active');document.body.style.overflow=''};window.leadOutside=e=>{if(e.target.id==='leadModal')closeLeadRegister()};document.getElementById('leadCpf').addEventListener('input',e=>e.target.value=fmtCPF(e.target.value));document.getElementById('leadWhats').addEventListener('input',e=>e.target.value=fmtWhats(e.target.value));document.getElementById('leadForm').addEventListener('submit',async e=>{e.preventDefault();let nome=document.getElementById('leadNome').value.trim().replace(/\s+/g,' '),cpf=document.getElementById('leadCpf').value.replace(/\D/g,''),whats=document.getElementById('leadWhats').value,btn=document.getElementById('leadBtn'),msg=document.getElementById('leadMsg');function err(t){msg.textContent=t;msg.className='lead-msg error';msg.style.display='block'}if(nome.split(' ').length<2)return err('Informe nome e sobrenome.');if(!validCPF(cpf))return err('CPF inválido.');if(whats.replace(/\D/g,'').length<10)return err('WhatsApp inválido.');btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Verificando...';let chk=await db.from('clientes').select('id').eq('cpf',cpf).maybeSingle();if(chk.error){btn.disabled=false;btn.textContent='Criar acesso ao Portal';return err('Não foi possível verificar o cadastro.')}if(chk.data){btn.disabled=false;btn.textContent='Criar acesso ao Portal';return err('Este CPF já possui cadastro.')}let ins=await db.from('clientes').insert([{nome,cpf,whatsapp:whats,senha:cpf,status:'active'}]).select('*').single();if(ins.error){btn.disabled=false;btn.textContent='Criar acesso ao Portal';return err(ins.error.code==='23505'?'Este CPF já possui cadastro.':'Não foi possível concluir o cadastro.')}document.getElementById('leadFormView').style.display='none';document.getElementById('leadSuccess').style.display='block'});
-window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('albumPhotoLightbox')?.classList.contains('active'))closeAlbumPhoto();else if(document.getElementById('albumViewerModal')?.classList.contains('active'))closeAlbumViewer();else{closeSessionGallery();closeProduct();closeCompare();closeLeadRegister()}}});Promise.allSettled([loadProducts(),loadPromos(),loadTrust(),loadSiteImages(),loadLandpageSessionImages()]);
+window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('themePhotoLightbox')?.classList.contains('active'))closeThemePhoto();else if(document.getElementById('albumPhotoLightbox')?.classList.contains('active'))closeAlbumPhoto();else if(document.getElementById('albumViewerModal')?.classList.contains('active'))closeAlbumViewer();else{closeSessionGallery();closeProduct();closeCompare();closeLeadRegister()}}});Promise.allSettled([loadProducts(),loadPromos(),loadTrust(),loadSiteImages(),loadLandpageSessionImages()]);
 })();
 </script>
 </body>
