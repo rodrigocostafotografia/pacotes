@@ -360,9 +360,10 @@ body.has-site-background::before{z-index:0;background:linear-gradient(180deg,rgb
 .album-viewer-photo{
   position:relative;border:1px solid rgba(255,255,255,.07);border-radius:15px;overflow:hidden;
   background:#08090d;min-height:140px;cursor:pointer;transition:transform .22s,border-color .22s,box-shadow .22s;
+  display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
 }
 .album-viewer-photo:hover{transform:translateY(-2px);border-color:rgba(213,175,97,.34);box-shadow:0 16px 38px rgba(0,0,0,.34)}
-.album-viewer-photo img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.album-viewer-photo img{width:100%;height:auto;max-height:520px;object-fit:contain;object-position:center;display:block;background:#08090d}
 .album-viewer-photo-caption{padding:9px 10px;font:700 10px var(--ui);color:#d7d9df;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .album-viewer-empty{padding:55px 20px;text-align:center;color:var(--muted);font-size:12px}
 .album-photo-lightbox{
