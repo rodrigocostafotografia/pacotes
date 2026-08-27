@@ -240,7 +240,9 @@ body.has-site-background::before{z-index:0;background:linear-gradient(180deg,rgb
 .session-gallery-trigger{border-color:rgba(213,175,97,.18)!important;background:rgba(213,175,97,.035)!important;color:#d7c08b!important;min-height:40px}
 .session-gallery-trigger:hover{border-color:rgba(213,175,97,.48)!important;background:rgba(213,175,97,.10)!important;color:var(--gold2)!important}
 .session-gallery-trigger i{margin-right:5px}
-.session-gallery-modal .modal-box{max-width:980px}
+.session-gallery-modal{z-index:5000!important;pointer-events:none}
+.session-gallery-modal.active{pointer-events:auto}
+.session-gallery-modal .modal-box{max-width:980px;position:relative;z-index:5001}
 .session-gallery-head{padding:20px 24px 0}
 .session-gallery-title{font:400 31px/1.1 var(--serif);margin-bottom:5px}
 .session-gallery-sub{font-size:12px;color:var(--muted);line-height:1.6}
@@ -303,6 +305,89 @@ body.has-site-background::before{z-index:0;background:linear-gradient(180deg,rgb
   .session-album-meta{font-size:9px}
 }
 @media(max-width:390px){.session-gallery-grid,.session-gallery-grid.album-mode{grid-template-columns:1fr}}
+
+/* ===== VISUAL PREMIUM DO MODAL DE ÁLBUM ===== */
+.album-viewer-modal{
+  z-index:6200!important;
+  padding:18px;
+  align-items:center!important;
+  background:rgba(0,0,0,.86);
+  backdrop-filter:blur(18px) saturate(120%);
+  -webkit-backdrop-filter:blur(18px) saturate(120%);
+}
+.album-viewer-modal.active{display:flex;opacity:1;pointer-events:auto}
+.album-viewer-modal .album-viewer-box{
+  width:min(1180px,100%);
+  max-width:1180px;
+  max-height:min(92vh,920px);
+  overflow:hidden;
+  border-radius:26px;
+  background:linear-gradient(180deg,rgba(17,20,27,.98),rgba(10,12,17,.985));
+  border:1px solid rgba(213,175,97,.22);
+  box-shadow:0 35px 120px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.025) inset;
+}
+.album-viewer-top{
+  min-height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:14px 18px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));
+}
+.album-viewer-heading{min-width:0}
+.album-viewer-eyebrow{
+  font:800 9px var(--ui);letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:4px
+}
+.album-viewer-title{
+  font:400 clamp(25px,3vw,38px)/1.05 var(--serif);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.album-viewer-count{font:700 10px var(--ui);color:var(--muted);margin-top:5px}
+.album-viewer-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.album-viewer-exit{
+  min-height:42px;padding:0 14px;border-radius:11px;border:1px solid rgba(213,175,97,.34);
+  background:rgba(213,175,97,.08);color:var(--gold2);font:800 10px var(--ui);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:7px
+}
+.album-viewer-close{
+  width:42px;height:42px;border-radius:11px;border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.035);color:#dfe2e8;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px
+}
+.album-viewer-exit:hover,.album-viewer-close:hover{transform:translateY(-1px);border-color:rgba(213,175,97,.48);background:rgba(213,175,97,.12);color:#fff}
+.album-viewer-body{padding:18px;overflow:auto;max-height:calc(min(92vh,920px) - 72px);scrollbar-width:thin}
+.album-viewer-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.album-viewer-photo{
+  position:relative;border:1px solid rgba(255,255,255,.07);border-radius:15px;overflow:hidden;
+  background:#08090d;min-height:140px;cursor:pointer;transition:transform .22s,border-color .22s,box-shadow .22s;
+}
+.album-viewer-photo:hover{transform:translateY(-2px);border-color:rgba(213,175,97,.34);box-shadow:0 16px 38px rgba(0,0,0,.34)}
+.album-viewer-photo img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.album-viewer-photo-caption{padding:9px 10px;font:700 10px var(--ui);color:#d7d9df;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.album-viewer-empty{padding:55px 20px;text-align:center;color:var(--muted);font-size:12px}
+.album-photo-lightbox{
+  position:fixed;inset:0;z-index:7000;display:none;align-items:center;justify-content:center;
+  padding:18px;background:rgba(0,0,0,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+}
+.album-photo-lightbox.active{display:flex}
+.album-photo-lightbox img{max-width:min(94vw,1500px);max-height:88vh;object-fit:contain;border-radius:10px;box-shadow:0 30px 100px rgba(0,0,0,.65)}
+.album-photo-lightbox-close{position:absolute;top:18px;right:18px;width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(20,22,28,.8);color:#fff;cursor:pointer;font-size:18px}
+@media(max-width:980px){.album-viewer-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:680px){
+  .album-viewer-modal{padding:8px}
+  .album-viewer-modal .album-viewer-box{max-height:96vh;border-radius:19px}
+  .album-viewer-top{padding:12px 13px;min-height:64px}
+  .album-viewer-title{font-size:27px}
+  .album-viewer-exit{padding:0 11px;min-height:40px}
+  .album-viewer-exit span{display:none}
+  .album-viewer-close{width:40px;height:40px}
+  .album-viewer-body{padding:11px;max-height:calc(96vh - 64px)}
+  .album-viewer-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .album-viewer-photo{border-radius:12px}
+  .album-viewer-photo-caption{font-size:9px;padding:8px}
+}
+@media(max-width:390px){.album-viewer-grid{grid-template-columns:1fr 1fr}}
+
 </style>
 </head>
 <body>
@@ -380,6 +465,31 @@ body.has-site-background::before{z-index:0;background:linear-gradient(180deg,rgb
       </div>
     </div>
   </div>
+</div>
+
+<div class="modal album-viewer-modal" id="albumViewerModal" onclick="albumViewerOutside(event)" aria-hidden="true">
+  <div class="album-viewer-box">
+    <div class="album-viewer-top">
+      <div class="album-viewer-heading">
+        <div class="album-viewer-eyebrow" id="albumViewerEyebrow">Álbum</div>
+        <div class="album-viewer-title" id="albumViewerTitle">Álbum</div>
+        <div class="album-viewer-count" id="albumViewerCount"></div>
+      </div>
+      <div class="album-viewer-actions">
+        <button type="button" class="album-viewer-exit" onclick="closeAlbumViewer()"><i class="fa-solid fa-arrow-left"></i><span>Sair do álbum</span></button>
+        <button type="button" class="album-viewer-close" onclick="closeAlbumViewer()" aria-label="Fechar álbum"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+    <div class="album-viewer-body">
+      <div class="album-viewer-grid" id="albumViewerGrid">
+        <div class="album-viewer-empty"><i class="fa-solid fa-spinner fa-spin" style="font-size:24px;color:var(--gold);margin-bottom:10px"></i><div>Carregando álbum...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="album-photo-lightbox" id="albumPhotoLightbox" onclick="albumPhotoLightboxOutside(event)">
+  <button type="button" class="album-photo-lightbox-close" onclick="closeAlbumPhoto()" aria-label="Fechar foto"><i class="fa-solid fa-xmark"></i></button>
+  <img id="albumPhotoLightboxImg" src="" alt="">
 </div>
 <div class="modal" id="productModal" onclick="modalOutside(event)"><div class="modal-box"><div class="modal-top"><div class="modal-label">Detalhes do pacote</div><button class="modal-close" onclick="closeProduct()"><i class="fa-solid fa-xmark"></i></button></div><div class="modal-media" id="modalMedia"></div><div class="modal-content"><div class="modal-category" id="modalCat"></div><div class="modal-title" id="modalName"></div><div class="modal-price" id="modalPrice"></div><div class="modal-desc" id="modalDesc"></div><div class="modal-columns"><div class="detail-box"><h4>O que está incluso</h4><ul id="modalIncludes" class="detail-list"></ul></div><div class="detail-box"><h4>Adicionais</h4><div id="modalExtras" class="extras"></div></div></div><div class="video" id="modalVideoBox" style="display:none"><div class="video-title">Vídeo do pacote</div><div id="modalVideo"></div></div><div class="modal-cta"><a id="modalWA" class="wa-btn" href="#" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Quero fechar este pacote</a><button class="pdf-btn" onclick="printProposal()"><i class="fa-solid fa-file-lines"></i> Ver proposta</button></div></div></div></div>
 <div class="modal" id="compareModal" onclick="compareOutside(event)"><div class="modal-box"><div class="modal-top"><div class="modal-label">Comparação direta</div><button class="modal-close" onclick="closeCompare()"><i class="fa-solid fa-xmark"></i></button></div><div class="compare-modal-body"><div id="compareGrid" class="compare-grid"></div></div></div></div>
@@ -463,10 +573,13 @@ function isAlbumGallerySession(session){
 function parseLandpageAlbum(slotKey, session){
   const s=String(slotKey||'');
   if(!isAlbumGallerySession(session)) return {album:'',photo:'',isAlbum:false};
-  const noPrefix=s.replace(/^(eventos|ultimos_eventos|ensaios_eventos|ensaios)(?:_|-|\s)+/i,'');
-  const m=noPrefix.match(/^album__([^]+?)__foto__(.+)$/i);
-  if(!m) return {album:'',photo:noPrefix,isAlbum:false};
-  return {album:m[1],photo:m[2],isAlbum:true};
+  const prefixRe=/^(eventos|ultimos_eventos|ensaios_eventos|ensaios)(?:_|-|\s)+/i;
+  const noPrefix=s.replace(prefixRe,'');
+  let m=noPrefix.match(/^album__([^]+?)__foto__(.+)$/i);
+  if(m) return {album:m[1],photo:m[2],isAlbum:true};
+  m=noPrefix.match(/^album_(.+?)__(.+)$/i);
+  if(m) return {album:m[1],photo:m[2],isAlbum:true};
+  return {album:'',photo:noPrefix,isAlbum:false};
 }
 
 function displayLandpageAlbumName(value){
@@ -639,12 +752,67 @@ function updateSessionGalleryHeader(){
 }
 
 async function openSessionAlbum(album){
-  sessionGalleryAlbum=String(album||'');
-  updateSessionGalleryHeader();
-  renderSessionGallery();
+  const albumName=String(album||'').trim();
+  const viewer=document.getElementById('albumViewerModal');
+  const grid=document.getElementById('albumViewerGrid');
+  const title=document.getElementById('albumViewerTitle');
+  const eyebrow=document.getElementById('albumViewerEyebrow');
+  const count=document.getElementById('albumViewerCount');
+  if(!viewer||!grid)return;
+  sessionGalleryAlbum=albumName;
+  const items=landpageSessionImages.filter(item=>
+    item.session===sessionGalleryCurrent &&
+    parseLandpageAlbum(item.slot_key,item.session).album===albumName
+  );
+  const labels={ultimos_eventos:'Últimos Eventos',ensaios:'Ensaios'};
+  if(title)title.textContent=displayLandpageAlbumName(albumName);
+  if(eyebrow)eyebrow.textContent=labels[sessionGalleryCurrent]||'Álbum';
+  if(count)count.textContent=items.length+(items.length===1?' foto':' fotos');
+  if(!items.length){
+    grid.innerHTML='<div class="album-viewer-empty"><i class="fa-solid fa-images" style="font-size:28px;color:var(--gold);margin-bottom:10px;display:block"></i><div>Este álbum ainda não possui fotos.</div></div>';
+  }else{
+    grid.innerHTML=items.map(item=>{
+      const parsed=parseLandpageAlbum(item.slot_key,item.session);
+      const titleText=item.titulo||displayLandpagePhotoName(parsed.photo||item.slot_key||'Foto');
+      return '<button type="button" class="album-viewer-photo" data-url="'+esc(item.url)+'" data-title="'+esc(titleText)+'" onclick="openAlbumPhoto(this.dataset.url,this.dataset.title)">'+
+        '<img src="'+esc(item.url)+'" alt="'+esc(titleText)+'" loading="lazy">'+
+        '<div class="album-viewer-photo-caption">'+esc(titleText)+'</div>'+
+      '</button>';
+    }).join('');
+  }
+  viewer.classList.add('active');
+  viewer.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
 }
 
+function closeAlbumViewer(){
+  const viewer=document.getElementById('albumViewerModal');
+  if(viewer){viewer.classList.remove('active');viewer.setAttribute('aria-hidden','true');}
+  closeAlbumPhoto();
+  sessionGalleryAlbum='';
+  document.body.style.overflow='hidden';
+}
+
+function albumViewerOutside(e){if(e.target.id==='albumViewerModal')closeAlbumViewer()}
+
+function openAlbumPhoto(url,title){
+  const lb=document.getElementById('albumPhotoLightbox');
+  const img=document.getElementById('albumPhotoLightboxImg');
+  if(!lb||!img)return;
+  img.src=url||'';
+  img.alt=title||'Foto do álbum';
+  lb.classList.add('active');
+}
+function closeAlbumPhoto(){
+  const lb=document.getElementById('albumPhotoLightbox');
+  const img=document.getElementById('albumPhotoLightboxImg');
+  if(lb)lb.classList.remove('active');
+  if(img)img.src='';
+}
+function albumPhotoLightboxOutside(e){if(e.target.id==='albumPhotoLightbox')closeAlbumPhoto()}
+
 function backToSessionAlbums(){
+  closeAlbumViewer();
   sessionGalleryAlbum='';
   updateSessionGalleryHeader();
   renderSessionGallery();
@@ -658,9 +826,15 @@ async function openSessionGallery(session){
       : 'temas_infantis_menino';
   sessionGalleryAlbum='';
   const modal=document.getElementById('sessionGalleryModal'); if(!modal)return;
+  ['productModal','compareModal','leadModal'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.classList.remove('active');
+  });
   syncSessionGalleryTabs();
   updateSessionGalleryHeader();
-  modal.classList.add('active');document.body.style.overflow='hidden';
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
   if(!landpageSessionImages.length)await loadLandpageSessionImages();
   renderSessionGallery();
 }
@@ -674,7 +848,11 @@ function setSessionGalleryTab(session){
 }
 
 function closeSessionGallery(){
-  document.getElementById('sessionGalleryModal')?.classList.remove('active');
+  const modal=document.getElementById('sessionGalleryModal');
+  if(modal){
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden','true');
+  }
   document.body.style.overflow='';
 }
 function sessionGalleryOutside(e){if(e.target.id==='sessionGalleryModal')closeSessionGallery()}
@@ -683,6 +861,11 @@ window.setSessionGalleryTab=setSessionGalleryTab;
 window.closeSessionGallery=closeSessionGallery;
 window.sessionGalleryOutside=sessionGalleryOutside;
 window.openSessionAlbum=openSessionAlbum;
+window.closeAlbumViewer=closeAlbumViewer;
+window.albumViewerOutside=albumViewerOutside;
+window.openAlbumPhoto=openAlbumPhoto;
+window.closeAlbumPhoto=closeAlbumPhoto;
+window.albumPhotoLightboxOutside=albumPhotoLightboxOutside;
 window.backToSessionAlbums=backToSessionAlbums;
 
 async function loadSiteImages(){
@@ -722,7 +905,7 @@ function initials(n){let a=String(n||'?').trim().split(/\s+/);return ((a[0]||'?'
 async function loadTrust(){let ds=await db.from('clientes').select('nome,foto_perfil,categoria_cliente,depoimentos').not('depoimentos','is',null).order('id',{ascending:false}).limit(6),as=await db.from('clientes').select('nome,foto_perfil,categoria_cliente,virtua_album').not('virtua_album','is',null).order('id',{ascending:false}).limit(6),items=[];(ds.data||[]).filter(x=>x.depoimentos).slice(0,4).forEach(x=>items.push({type:'d',...x}));(as.data||[]).filter(x=>x.virtua_album).slice(0,4).forEach(x=>items.push({type:'a',...x}));document.getElementById('trustStatus').textContent=items.length+' experiências';let list=document.getElementById('trustList');if(!items.length){list.innerHTML='<div class="empty">Ainda não há experiências públicas cadastradas.</div>';return}list.innerHTML=items.slice(0,6).map(x=>'<article class="testimonial"><div class="who">'+(x.foto_perfil?'<img class="avatar" src="'+esc(x.foto_perfil)+'" alt="'+esc(x.nome)+'">':'<div class="avatar">'+esc(initials(x.nome))+'</div>')+'<div><b>'+esc(x.nome||'Cliente')+'</b><span>'+esc(x.categoria_cliente||'Cliente')+'</span></div></div>'+(x.type==='d'?'<div class="quote">“'+esc(x.depoimentos)+'”</div>':'<a class="album-link" href="'+esc(x.virtua_album)+'" target="_blank" rel="noopener">Ver fotolivro entregue <i class="fa-solid fa-arrow-up-right-from-square"></i></a>')+'</article>').join('')}
 function fmtCPF(v){v=String(v||'').replace(/\D/g,'');return v.length<=11?v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4'):v}function fmtWhats(v){v=String(v||'').replace(/\D/g,'').slice(0,11);if(v.length>6)return'('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);if(v.length>2)return'('+v.slice(0,2)+') '+v.slice(2);return v}function validCPF(c){c=String(c||'').replace(/\D/g,'');if(c.length!==11||/^(\d)\1{10}$/.test(c))return false;let s=0;for(let i=0;i<9;i++)s+=+c[i]*(10-i);let r=(s*10)%11;if(r===10)r=0;if(r!==+c[9])return false;s=0;for(let i=0;i<10;i++)s+=+c[i]*(11-i);r=(s*10)%11;if(r===10)r=0;return r===+c[10]}
 window.openLeadRegister=()=>{document.getElementById('leadModal').classList.add('active');document.body.style.overflow='hidden';document.getElementById('leadFormView').style.display='block';document.getElementById('leadSuccess').style.display='none';document.getElementById('leadMsg').style.display='none'};window.closeLeadRegister=()=>{document.getElementById('leadModal').classList.remove('active');document.body.style.overflow=''};window.leadOutside=e=>{if(e.target.id==='leadModal')closeLeadRegister()};document.getElementById('leadCpf').addEventListener('input',e=>e.target.value=fmtCPF(e.target.value));document.getElementById('leadWhats').addEventListener('input',e=>e.target.value=fmtWhats(e.target.value));document.getElementById('leadForm').addEventListener('submit',async e=>{e.preventDefault();let nome=document.getElementById('leadNome').value.trim().replace(/\s+/g,' '),cpf=document.getElementById('leadCpf').value.replace(/\D/g,''),whats=document.getElementById('leadWhats').value,btn=document.getElementById('leadBtn'),msg=document.getElementById('leadMsg');function err(t){msg.textContent=t;msg.className='lead-msg error';msg.style.display='block'}if(nome.split(' ').length<2)return err('Informe nome e sobrenome.');if(!validCPF(cpf))return err('CPF inválido.');if(whats.replace(/\D/g,'').length<10)return err('WhatsApp inválido.');btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Verificando...';let chk=await db.from('clientes').select('id').eq('cpf',cpf).maybeSingle();if(chk.error){btn.disabled=false;btn.textContent='Criar acesso ao Portal';return err('Não foi possível verificar o cadastro.')}if(chk.data){btn.disabled=false;btn.textContent='Criar acesso ao Portal';return err('Este CPF já possui cadastro.')}let ins=await db.from('clientes').insert([{nome,cpf,whatsapp:whats,senha:cpf,status:'active'}]).select('*').single();if(ins.error){btn.disabled=false;btn.textContent='Criar acesso ao Portal';return err(ins.error.code==='23505'?'Este CPF já possui cadastro.':'Não foi possível concluir o cadastro.')}document.getElementById('leadFormView').style.display='none';document.getElementById('leadSuccess').style.display='block'});
-window.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSessionGallery();closeProduct();closeCompare();closeLeadRegister()}});Promise.allSettled([loadProducts(),loadPromos(),loadTrust(),loadSiteImages(),loadLandpageSessionImages()]);
+window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('albumPhotoLightbox')?.classList.contains('active'))closeAlbumPhoto();else if(document.getElementById('albumViewerModal')?.classList.contains('active'))closeAlbumViewer();else{closeSessionGallery();closeProduct();closeCompare();closeLeadRegister()}}});Promise.allSettled([loadProducts(),loadPromos(),loadTrust(),loadSiteImages(),loadLandpageSessionImages()]);
 })();
 </script>
 </body>
