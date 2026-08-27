@@ -265,6 +265,25 @@ body.has-site-background::before{z-index:0;background:linear-gradient(180deg,rgb
 .session-photo-empty{grid-column:1/-1;padding:45px 20px;text-align:center;border:1px dashed var(--line2);border-radius:15px;color:var(--muted);font-size:12px}
 .session-photo-empty i{font-size:28px;color:var(--gold);margin-bottom:10px}
 @media(max-width:900px){.session-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* ===== ÁLBUNS NAS GALERIAS DE ENSAIOS E EVENTOS ===== */
+.session-album-tools{display:none;align-items:center;gap:9px;flex-wrap:wrap;margin-top:13px}
+.session-album-tools.show{display:flex}
+.session-album-back{display:none;align-items:center;gap:7px;border:1px solid rgba(213,175,97,.24);background:rgba(213,175,97,.06);color:var(--gold2);border-radius:10px;padding:8px 11px;font:800 10px var(--ui);cursor:pointer}
+.session-album-back.show{display:inline-flex}
+.session-album-current{font:800 10px var(--ui);color:#c8cad2}
+.session-gallery-grid.album-mode{grid-template-columns:repeat(3,minmax(0,1fr))}
+.session-album-card{display:block;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.032),rgba(255,255,255,.012));border-radius:16px;overflow:hidden;text-decoration:none;cursor:pointer;transition:.2s}
+.session-album-card:hover{transform:translateY(-2px);border-color:rgba(213,175,97,.36);box-shadow:0 18px 45px rgba(0,0,0,.28)}
+.session-album-cover{aspect-ratio:16/10;background:#08090d;overflow:hidden}
+.session-album-cover img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s}
+.session-album-card:hover .session-album-cover img{transform:scale(1.025)}
+.session-album-body{padding:12px}
+.session-album-title{font:800 13px/1.3 var(--ui);color:#eee}
+.session-album-meta{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.45}
+.session-album-icon{color:var(--gold2);margin-right:6px}
+.session-album-empty{grid-column:1/-1;padding:45px 20px;text-align:center;border:1px dashed var(--line2);border-radius:15px;color:var(--muted);font-size:12px}
+
+@media(max-width:900px){.session-gallery-grid.album-mode{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){
   .navlinks .session-gallery-trigger{display:inline-flex!important}
   .session-gallery-trigger{padding:8px 10px;font-size:9px;min-height:38px}
@@ -275,11 +294,15 @@ body.has-site-background::before{z-index:0;background:linear-gradient(180deg,rgb
   .session-gallery-tabs{padding:13px 16px 0}
   .session-gallery-body{padding:16px}
   .session-gallery-grid{grid-template-columns:1fr 1fr;gap:9px}
+  .session-gallery-grid.album-mode{grid-template-columns:1fr 1fr}
   .session-photo-body{padding:9px}
   .session-photo-title{font-size:10.5px}
   .session-photo-alt{font-size:9px}
+  .session-album-body{padding:10px}
+  .session-album-title{font-size:11px}
+  .session-album-meta{font-size:9px}
 }
-@media(max-width:390px){.session-gallery-grid{grid-template-columns:1fr}}
+@media(max-width:390px){.session-gallery-grid,.session-gallery-grid.album-mode{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -338,6 +361,10 @@ body.has-site-background::before{z-index:0;background:linear-gradient(180deg,rgb
     <div class="session-gallery-head">
       <div class="session-gallery-title" id="sessionGalleryTitle">Temas Infantis</div>
       <div class="session-gallery-sub" id="sessionGallerySub">Veja as imagens cadastradas para esta sessão.</div>
+      <div class="session-album-tools" id="sessionGalleryAlbumTools">
+        <button type="button" class="session-album-back" id="sessionGalleryAlbumBack" onclick="backToSessionAlbums()"><i class="fa-solid fa-arrow-left"></i> Voltar aos álbuns</button>
+        <span class="session-album-current" id="sessionGalleryAlbumCurrent"></span>
+      </div>
     </div>
     <div class="session-gallery-tabs">
       <button class="session-tab active" data-session-tab="temas_infantis_menino" onclick="setSessionGalleryTab('temas_infantis_menino')"><i class="fa-solid fa-child"></i> Menino</button>
@@ -413,23 +440,43 @@ function startSiteBackgroundRotation(){
 
 let landpageSessionImages=[];
 let sessionGalleryCurrent='temas_infantis_menino';
+let sessionGalleryAlbum='';
 const LANDPAGE_PUBLIC_BASE=SUPA_URL+'/storage/v1/object/public/marketplace-fotos/';
+
 function normalizeLandpageSession(slotKey){
   const s=String(slotKey||'').trim().toLowerCase();
-  // Compatível com os prefixes realmente gravados pelo Sistema ADM
-  // e também com formatos legados/anteriores do Portal.
   if(/^(?:infantil_menino|temas_infantis_menino)(?:_|-|\s)+/.test(s)) return 'temas_infantis_menino';
   if(/^(?:infantil_menina|temas_infantis_menina)(?:_|-|\s)+/.test(s)) return 'temas_infantis_menina';
   if(/^(?:familia|família)(?:_|-|\s)+/.test(s)) return 'familia';
   if(/^(?:adulto|adulto_profissional|adulto-profissional)(?:_|-|\s)+/.test(s)) return 'adulto';
   if(/^(?:eventos|ultimos_eventos|ensaios_eventos)(?:_|-|\s)+/.test(s)) {
-    return /^(?:eventos|ultimos_eventos|ensaios_eventos)(?:_|-|\s)+/.test(s)
-      ? (/^ensaios_eventos(?:_|-|\s)+/.test(s) ? 'ensaios' : 'ultimos_eventos')
-      : '';
+    return /^ensaios_eventos(?:_|-|\s)+/.test(s) ? 'ensaios' : 'ultimos_eventos';
   }
   if(/^(?:ensaios)(?:_|-|\s)+/.test(s)) return 'ensaios';
   return '';
 }
+
+function isAlbumGallerySession(session){
+  return session==='ultimos_eventos' || session==='ensaios';
+}
+
+function parseLandpageAlbum(slotKey, session){
+  const s=String(slotKey||'');
+  if(!isAlbumGallerySession(session)) return {album:'',photo:'',isAlbum:false};
+  const noPrefix=s.replace(/^(eventos|ultimos_eventos|ensaios_eventos|ensaios)(?:_|-|\s)+/i,'');
+  const m=noPrefix.match(/^album__([^]+?)__foto__(.+)$/i);
+  if(!m) return {album:'',photo:noPrefix,isAlbum:false};
+  return {album:m[1],photo:m[2],isAlbum:true};
+}
+
+function displayLandpageAlbumName(value){
+  return String(value||'').replace(/_/g,' ').replace(/\s+/g,' ').trim() || 'Sem álbum';
+}
+
+function displayLandpagePhotoName(value){
+  return String(value||'').replace(/_/g,' ').replace(/\s+/g,' ').trim() || 'Foto';
+}
+
 function resolveLandpagePublicUrl(path){
   let v=String(path||'').trim().replace(/\\/g,'/');
   if(!v)return '';
@@ -438,93 +485,206 @@ function resolveLandpagePublicUrl(path){
   if(!/^landpage(?:\/|$)/i.test(v))v='landpage/'+v;
   return LANDPAGE_PUBLIC_BASE+v.split('/').map(encodeURIComponent).join('/');
 }
+
 function landpageImageName(item){
-  const raw=String(item.slot_key||'').replace(/^(infantil_menino|infantil_menina|temas_infantis_menino|temas_infantis_menina|temas_infantis|familia|adulto|adulto_profissional|adulto-profissional|ultimos_eventos|eventos|ensaios)__?/i,'').replace(/_/g,' ').trim();
+  const parsed=parseLandpageAlbum(item.slot_key,item.session);
+  const raw=parsed.isAlbum?parsed.photo:String(item.slot_key||'').replace(/^(infantil_menino|infantil_menina|temas_infantis_menino|temas_infantis_menina|temas_infantis|familia|adulto|adulto_profissional|adulto-profissional|ultimos_eventos|eventos|ensaios)__?/i,'').replace(/_/g,' ').trim();
   return item.titulo||raw||'Imagem';
 }
+
 async function loadLandpageSessionImages(){
   const grid=document.getElementById('sessionGalleryGrid');
   if(grid)grid.innerHTML='<div class="session-photo-empty"><i class="fa-solid fa-spinner fa-spin"></i><div>Carregando imagens...</div></div>';
   const r=await db.from('imagens_site').select('slot_key,caminho_imagem,titulo,descricao_alt,link_redirect,updated_at').order('slot_key',{ascending:true}).limit(500);
-  if(r.error||!Array.isArray(r.data)){landpageSessionImages=[];if(grid)grid.innerHTML='<div class="session-photo-empty"><i class="fa-solid fa-triangle-exclamation"></i><div>Não foi possível carregar as imagens das sessões.</div></div>';return}
-  landpageSessionImages=r.data.map(x=>({...x,session:normalizeLandpageSession(x.slot_key),url:resolveLandpagePublicUrl(x.caminho_imagem)})).filter(x=>x.session&&x.url);
-}
-function renderSessionGallery(){
-  const grid=document.getElementById('sessionGalleryGrid'); if(!grid)return;
-  const items=landpageSessionImages.filter(x=>x.session===sessionGalleryCurrent);
-  if(!items.length){
-    grid.innerHTML='<div class="session-photo-empty"><i class="fa-solid fa-images"></i><div>Nenhuma imagem cadastrada nesta sessão.</div></div>';return;
+  if(r.error||!Array.isArray(r.data)){
+    landpageSessionImages=[];
+    if(grid)grid.innerHTML='<div class="session-photo-empty"><i class="fa-solid fa-triangle-exclamation"></i><div>Não foi possível carregar as imagens das sessões.</div></div>';
+    return;
   }
+  landpageSessionImages=r.data.map(x=>({
+    ...x,
+    session:normalizeLandpageSession(x.slot_key),
+    url:resolveLandpagePublicUrl(x.caminho_imagem)
+  })).filter(x=>x.session&&x.url);
+}
+
+function renderSessionGallery(){
+  const grid=document.getElementById('sessionGalleryGrid');
+  if(!grid)return;
+
+  const back=document.getElementById('sessionGalleryAlbumBack');
+  const currentName=document.getElementById('sessionGalleryAlbumCurrent');
+  const isAlbums=isAlbumGallerySession(sessionGalleryCurrent);
+
+  if(back)back.classList.toggle('show',!!sessionGalleryAlbum);
+  if(currentName)currentName.textContent=sessionGalleryAlbum?displayLandpageAlbumName(sessionGalleryAlbum):'';
+
+  const sessionItems=landpageSessionImages.filter(x=>x.session===sessionGalleryCurrent);
+
+  if(isAlbums && !sessionGalleryAlbum){
+    grid.classList.add('album-mode');
+
+    const groups=new Map();
+    sessionItems.forEach(item=>{
+      const parsed=parseLandpageAlbum(item.slot_key,item.session);
+      const album=parsed.album||'';
+      if(!groups.has(album))groups.set(album,[]);
+      groups.get(album).push(item);
+    });
+
+    const ordered=[...groups.entries()]
+      .filter(([album,items])=>album||items.length)
+      .sort((a,b)=>displayLandpageAlbumName(a[0]).localeCompare(displayLandpageAlbumName(b[0]),'pt-BR'));
+
+    if(!ordered.length){
+      grid.innerHTML='<div class="session-album-empty"><i class="fa-solid fa-folder-open" style="font-size:28px;color:var(--gold);margin-bottom:10px;display:block"></i><div>Nenhum álbum cadastrado nesta sessão.</div></div>';
+      return;
+    }
+
+    grid.innerHTML=ordered.map(([album,items])=>{
+      const namedAlbum=album||'';
+      const cover=items.find(x=>x.url)?.url||'';
+      const coverHtml=cover
+        ? '<div class="session-album-cover"><img src="'+esc(cover)+'" alt="'+esc(displayLandpageAlbumName(namedAlbum))+'" loading="lazy"></div>'
+        : '<div class="session-album-cover" style="display:flex;align-items:center;justify-content:center;color:#5f6471;font-size:34px"><i class="fa-solid fa-folder-open"></i></div>';
+      return '<button type="button" class="session-album-card" onclick="openSessionAlbum(\''+esc(namedAlbum).replace(/'/g,"&#039;")+'\')">'+
+        coverHtml+
+        '<div class="session-album-body">'+
+          '<div class="session-album-title"><i class="fa-solid fa-folder session-album-icon"></i>'+esc(displayLandpageAlbumName(namedAlbum))+'</div>'+
+          '<div class="session-album-meta">'+items.length+(items.length===1?' foto':' fotos')+' · Abrir galeria</div>'+
+        '</div>'+
+      '</button>';
+    }).join('');
+    return;
+  }
+
+  grid.classList.remove('album-mode');
+
+  let items=sessionItems;
+  if(isAlbums && sessionGalleryAlbum){
+    items=items.filter(item=>parseLandpageAlbum(item.slot_key,item.session).album===sessionGalleryAlbum);
+  }
+
+  if(!items.length){
+    grid.innerHTML='<div class="session-photo-empty"><i class="fa-solid fa-images"></i><div>'+
+      (sessionGalleryAlbum?'Este álbum ainda não possui fotos.':'Nenhuma imagem cadastrada nesta sessão.')+
+      '</div></div>';
+    return;
+  }
+
   grid.innerHTML=items.map(item=>{
     const href=item.link_redirect?String(item.link_redirect).trim():'';
-    const tag=item.session==='temas_infantis_menino'?'Tema Infantil · Menino':item.session==='temas_infantis_menina'?'Tema Infantil · Menina':item.session==='familia'?'Família':item.session==='adulto'?'Adulto (Profissional)':item.session==='ultimos_eventos'?'Último Evento':'Ensaio';
-    const card='<div class="session-photo-media"><img src="'+esc(item.url)+'" alt="'+esc(item.descricao_alt||item.titulo||item.slot_key||tag)+'" loading="lazy"></div><div class="session-photo-body"><div class="session-photo-title">'+esc(item.titulo||tag)+'</div><div class="session-photo-alt">'+esc(item.descricao_alt||tag)+'</div></div>';
-    return href?'<a class="session-photo-card" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">'+card+'</a>':'<div class="session-photo-card">'+card+'</div>';
+    const parsed=parseLandpageAlbum(item.slot_key,item.session);
+    const tag=item.session==='temas_infantis_menino'?'Tema Infantil · Menino'
+      :item.session==='temas_infantis_menina'?'Tema Infantil · Menina'
+      :item.session==='familia'?'Família'
+      :item.session==='adulto'?'Adulto (Profissional)'
+      :item.session==='ultimos_eventos'?'Últimos Eventos':'Ensaios';
+    const photoTitle=item.titulo||displayLandpagePhotoName(parsed.photo||item.slot_key||tag);
+    const photoAlt=item.descricao_alt||tag;
+    const card='<div class="session-photo-media"><img src="'+esc(item.url)+'" alt="'+esc(photoAlt)+'" loading="lazy"></div>'+
+      '<div class="session-photo-body"><div class="session-photo-title">'+esc(photoTitle)+'</div>'+
+      '<div class="session-photo-alt">'+esc(photoAlt)+'</div></div>';
+    return href
+      ? '<a class="session-photo-card" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">'+card+'</a>'
+      : '<div class="session-photo-card">'+card+'</div>';
   }).join('');
 }
+
 function syncSessionGalleryTabs(){
   document.querySelectorAll('#sessionGalleryModal [data-session-tab]').forEach(b=>{
     b.classList.toggle('active',b.dataset.sessionTab===sessionGalleryCurrent);
   });
 }
+
+function updateSessionGalleryHeader(){
+  const label=document.getElementById('sessionGalleryLabel');
+  const title=document.getElementById('sessionGalleryTitle');
+  const sub=document.getElementById('sessionGallerySub');
+  const albumBack=document.getElementById('sessionGalleryAlbumBack');
+  const albumCurrent=document.getElementById('sessionGalleryAlbumCurrent');
+
+  const labels={
+    temas_infantis_menino:'Temas Infantis · Menino',
+    temas_infantis_menina:'Temas Infantis · Menina',
+    familia:'Família',
+    adulto:'Adulto (Profissional)',
+    ultimos_eventos:'Últimos Eventos',
+    ensaios:'Ensaios'
+  };
+
+  const base=labels[sessionGalleryCurrent]||'Galeria';
+  const inAlbum=isAlbumGallerySession(sessionGalleryCurrent)&&sessionGalleryAlbum;
+
+  if(label)label.textContent=inAlbum?displayLandpageAlbumName(sessionGalleryAlbum):base;
+  if(title)title.textContent=inAlbum?displayLandpageAlbumName(sessionGalleryAlbum):base;
+  if(sub)sub.textContent=inAlbum
+    ? 'Fotos do álbum selecionado.'
+    : sessionGalleryCurrent==='temas_infantis_menino'
+      ? 'Veja os temas infantis voltados para menino.'
+      : sessionGalleryCurrent==='temas_infantis_menina'
+        ? 'Veja os temas infantis voltados para menina.'
+        : sessionGalleryCurrent==='familia'
+          ? 'Veja as imagens da categoria Família.'
+          : sessionGalleryCurrent==='adulto'
+            ? 'Veja as imagens da categoria Adulto (Profissional).'
+            : isAlbumGallerySession(sessionGalleryCurrent)
+              ? 'Escolha um álbum para visualizar as fotos.'
+              : 'Veja as imagens publicadas para esta sessão.';
+
+  const tools=document.getElementById('sessionGalleryAlbumTools');
+  if(tools)tools.classList.toggle('show',!!inAlbum);
+  if(albumBack)albumBack.classList.toggle('show',!!inAlbum);
+  if(albumCurrent)albumCurrent.textContent=inAlbum?displayLandpageAlbumName(sessionGalleryAlbum):'';
+}
+
+async function openSessionAlbum(album){
+  sessionGalleryAlbum=String(album||'');
+  updateSessionGalleryHeader();
+  renderSessionGallery();
+}
+
+function backToSessionAlbums(){
+  sessionGalleryAlbum='';
+  updateSessionGalleryHeader();
+  renderSessionGallery();
+}
+
 async function openSessionGallery(session){
   sessionGalleryCurrent = ['temas_infantis_menino','temas_infantis_menina','familia','adulto','ultimos_eventos','ensaios'].includes(session)
     ? session
     : session==='ensaios_eventos'
       ? 'ultimos_eventos'
       : 'temas_infantis_menino';
+  sessionGalleryAlbum='';
   const modal=document.getElementById('sessionGalleryModal'); if(!modal)return;
-  const label=document.getElementById('sessionGalleryLabel'),title=document.getElementById('sessionGalleryTitle'),sub=document.getElementById('sessionGallerySub');
-  const labels={
-    temas_infantis_menino:'Temas Infantis · Menino',
-    temas_infantis_menina:'Temas Infantis · Menina',
-    familia:'Família',
-    adulto:'Adulto (Profissional)',
-    ultimos_eventos:'Últimos Eventos',
-    ensaios:'Ensaios'
-  };
-  label.textContent=labels[sessionGalleryCurrent];
-  title.textContent=labels[sessionGalleryCurrent];
-  sub.textContent=sessionGalleryCurrent==='temas_infantis_menino'
-    ? 'Veja os temas infantis voltados para menino.'
-    : sessionGalleryCurrent==='temas_infantis_menina'
-      ? 'Veja os temas infantis voltados para menina.'
-      : sessionGalleryCurrent==='familia'
-        ? 'Veja as imagens da categoria Família.'
-        : sessionGalleryCurrent==='adulto'
-          ? 'Veja as imagens da categoria Adulto (Profissional).'
-          : 'Veja as imagens publicadas para esta sessão.';
-  syncSessionGalleryTabs();modal.classList.add('active');document.body.style.overflow='hidden';
+  syncSessionGalleryTabs();
+  updateSessionGalleryHeader();
+  modal.classList.add('active');document.body.style.overflow='hidden';
   if(!landpageSessionImages.length)await loadLandpageSessionImages();
   renderSessionGallery();
 }
+
 function setSessionGalleryTab(session){
   sessionGalleryCurrent=session;
-  const label=document.getElementById('sessionGalleryLabel'),title=document.getElementById('sessionGalleryTitle'),sub=document.getElementById('sessionGallerySub');
-  const labels={
-    temas_infantis_menino:'Temas Infantis · Menino',
-    temas_infantis_menina:'Temas Infantis · Menina',
-    familia:'Família',
-    adulto:'Adulto (Profissional)',
-    ultimos_eventos:'Últimos Eventos',
-    ensaios:'Ensaios'
-  };
-  label.textContent=labels[session];
-  title.textContent=labels[session];
-  sub.textContent=session==='temas_infantis_menino'
-    ? 'Veja os temas infantis voltados para menino.'
-    : session==='temas_infantis_menina'
-      ? 'Veja os temas infantis voltados para menina.'
-      : sessionGalleryCurrent==='familia'
-        ? 'Veja as imagens da categoria Família.'
-        : sessionGalleryCurrent==='adulto'
-          ? 'Veja as imagens da categoria Adulto (Profissional).'
-          : 'Veja as imagens publicadas para esta sessão.';
-  syncSessionGalleryTabs();renderSessionGallery();
+  sessionGalleryAlbum='';
+  syncSessionGalleryTabs();
+  updateSessionGalleryHeader();
+  renderSessionGallery();
 }
-function closeSessionGallery(){document.getElementById('sessionGalleryModal')?.classList.remove('active');document.body.style.overflow=''}
+
+function closeSessionGallery(){
+  document.getElementById('sessionGalleryModal')?.classList.remove('active');
+  document.body.style.overflow='';
+}
 function sessionGalleryOutside(e){if(e.target.id==='sessionGalleryModal')closeSessionGallery()}
-window.openSessionGallery=openSessionGallery;window.setSessionGalleryTab=setSessionGalleryTab;window.closeSessionGallery=closeSessionGallery;window.sessionGalleryOutside=sessionGalleryOutside;
+window.openSessionGallery=openSessionGallery;
+window.setSessionGalleryTab=setSessionGalleryTab;
+window.closeSessionGallery=closeSessionGallery;
+window.sessionGalleryOutside=sessionGalleryOutside;
+window.openSessionAlbum=openSessionAlbum;
+window.backToSessionAlbums=backToSessionAlbums;
+
 async function loadSiteImages(){
   let r=await db.from('imagens_site').select('slot_key,caminho_imagem,titulo,descricao_alt').limit(500);
   if(r.error||!Array.isArray(r.data)){siteImages=[];return}
